@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>更改转盘信息</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f6f4;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    h1 {
+      margin-bottom: 30px;
+    }
+    .back-btn {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      font-size: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 200px;
+      border-radius: 30px;
+      border: 2px solid #000;
+    }
+    .btn {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #5f726c;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #4b5d58;
+    }
+    .chip {
+      display: inline-block;
+      background: #000;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 30px;
+      margin: 10px 5px;
+    }
+    .chip span {
+      margin-left: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button class="back-btn" onclick="location.href='index.html'">← 返回</button>
+  <h1>更改转盘信息</h1>
+  <input id="item-input" type="text" placeholder="输入食物名">
+  <div><button class="btn" onclick="addItem()">添加</button></div>
+  <div id="item-list"></div>
+
+  <script>
+    let items = JSON.parse(localStorage.getItem("wheelItems"));
+    if (!items || items.length === 0) {
+      items = ["宫保鸡丁", "红烧肉", "番茄炒蛋", "水煮鱼"];
+      localStorage.setItem("wheelItems", JSON.stringify(items));
+    }
+
+    function renderItems() {
+      const list = document.getElementById("item-list");
+      list.innerHTML = items.map((item, i) =>
+        `<div class="chip">${item}<span onclick="removeItem(${i})">✕</span></div>`
+      ).join('');
+    }
+
+    function addItem() {
+      const input = document.getElementById("item-input");
+      const value = input.value.trim();
+      if (value && !items.includes(value)) {
+        items.push(value);
+        localStorage.setItem("wheelItems", JSON.stringify(items));
+        input.value = "";
+        renderItems();
+      }
+    }
+
+    function removeItem(index) {
+      items.splice(index, 1);
+      localStorage.setItem("wheelItems", JSON.stringify(items));
+      renderItems();
+    }
+
+    renderItems();
+  </script>
+</body>
+</html>

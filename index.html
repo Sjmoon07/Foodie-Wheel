@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今天吃什么？</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f6f4;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .menu-btn {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      font-size: 24px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #5f726c;
+    }
+    .menu-btn:hover {
+      color: #4b5d58;
+      background-color: transparent !important;
+    }
+    #arrow {
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 20px solid #333;
+      margin: 0 auto 10px;
+    }
+    #wheel {
+      border: 6px solid #ccc;
+      border-radius: 50%;
+    }
+    #result {
+      margin-top: 30px;
+      font-size: 1.2em;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #5f726c;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #4b5d58;
+    }
+  </style>
+</head>
+<body>
+  <button class="menu-btn" onclick="location.href='settings.html'">☰</button>
+  <h1>今天吃什么？</h1>
+  <div id="arrow"></div>
+  <canvas id="wheel" width="300" height="300"></canvas>
+  <div><button onclick="spin()">开始</button></div>
+  <div id="result"></div>
+
+  <script>
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const resultDiv = document.getElementById("result");
+    const radius = canvas.width / 2;
+
+    let items = JSON.parse(localStorage.getItem("wheelItems"));
+    if (!items || items.length === 0) {
+      items = ["宫保鸡丁", "红烧肉", "番茄炒蛋", "水煮鱼"];
+      localStorage.setItem("wheelItems", JSON.stringify(items));
+    }
+
+    let angle = 0;
+    let spinning = false;
+
+    function drawWheel() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const len = items.length;
+      const anglePerSlice = (2 * Math.PI) / len;
+      // 莫兰迪配色方案
+      const colors = [
+        "#B5C4B1", // 柔和的灰绿色
+        "#E6DCCD", // 温暖的米灰色
+        "#A5B1AA", // 深灰绿色
+        "#D8CAAF", // 浅驼色
+        "#C4B7A6"  // 灰褐色
+      ];
+
+      for (let i = 0; i < len; i++) {
+        const start = i * anglePerSlice + angle;
+        const end = start + anglePerSlice;
+        ctx.beginPath();
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius, start, end);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.save();
+        ctx.translate(radius, radius);
+        ctx.rotate(start + anglePerSlice / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#333";  // 更深的文字颜色，提高可读性
+        ctx.font = "14px Arial";
+        ctx.fillText(items[i], radius - 10, 5);
+        ctx.restore();
+      }
+    }
+
+    function spin() {
+      if (spinning) return;
+      spinning = true;
+
+      const rand = Math.random();
+      const spins = 5 + rand * 5;
+      const targetAngle = spins * 2 * Math.PI;
+      const duration = 3000;
+      const start = performance.now();
+
+      function animate(time) {
+        const elapsed = time - start;
+        const progress = Math.min(elapsed / duration, 1);
+        angle = targetAngle * easeOut(progress);
+        drawWheel();
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          spinning = false;
+          const normalizedAngle = (angle % (2 * Math.PI));
+          const sliceSize = (2 * Math.PI) / items.length;
+          const adjustedAngle = (normalizedAngle + Math.PI / 2) % (2 * Math.PI);
+          const selectedIndex = items.length - 1 - Math.floor(adjustedAngle / sliceSize);
+          const name = items[selectedIndex] || '未知';
+          resultDiv.innerHTML = `好耶，那就吃 <a href="https://www.google.com/search?q=${encodeURIComponent(name + ' 做法')}" target="_blank">${name}</a> 吧！`;
+        }
+      }
+
+    requestAnimationFrame(animate);
+  }
+
+    function easeOut(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    drawWheel();
+  </script>
+</body>
+</html>
